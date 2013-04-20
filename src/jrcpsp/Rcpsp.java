@@ -83,7 +83,7 @@ public class Rcpsp {
 			}
 			if(add) {
 			    //kontrola zda neprekracuje limit
-			    if(time + next.getDuration() < currentBest && 
+			    if(startTime + next.getDuration() < currentBest && 
 				    checkPartialSchedule(schedule, next)) {
 				added = new Node(node, next);
 				node.addChild(added);
