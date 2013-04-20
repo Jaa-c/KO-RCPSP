@@ -1,9 +1,6 @@
 package jrcpsp;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.BitSet;
 
 /**
  *
@@ -18,20 +15,30 @@ public class Rcpsp {
     private final int activityCount;
     
     private int currentBest;
-    private Map<Integer, Activity> currentSchedule;
+    private int[] currentSchedule;
+    
+    
+    private int[][] time;
     
     public static int x = 0;
+    
+    private BitSet end;
 
     public Rcpsp(Activity firstActivity, int activityCount, int[] resourcesLimit, int maxDuration) {
 	
-	firstActivity.setStartTime(0);
-	this.rootNode = new Node(null, firstActivity);
+	this.rootNode = new Node(null, firstActivity, 0);
+	
 	this.resourcesLimit = resourcesLimit;
 	this.activityCount = activityCount;
 	
 	this.currentBest = Integer.MAX_VALUE;
 	
 	this.time = new int[maxDuration + 1][resourcesLimit.length];
+	
+	end = new BitSet();
+	for(int i = 1; i <= Main.activityList.length; i++) {
+	    end.set(i);
+	}
     }
     
     public void search() {
@@ -44,39 +51,45 @@ public class Rcpsp {
 	    return;
 	}
 	
-	x++;
-	if(x % 10000 == 0 || x  > 916300)
-	    System.out.println(x);
-	
-	
-	Map<Integer, Activity> schedule = node.getActivities();
+	BitSet schedule = node.getActivities();
 	int currentTime = node.getMaxTime();
 	
 	
-	if(x  > 916300) {
-	    System.out.println(currentTime);
-	}
+	
+	x++;
+	if(x % 10000 == 0)
+	    System.out.println(x);
+	
+//	if(x  > 916300) {
+//	    System.out.println(currentTime);
+//	}
 	
 //	for (Activity a : schedule.values()) {
 //	    System.out.print(a.getName());
 //	}
 //	System.out.println(" -> " + currentTime);
 	
+	
 	//rozvrh je kompletni
-	if(schedule.size() == activityCount) {
+	//if(schedule.size()== activityCount) {
+	//if(schedule.get(Main.activityList.length)) {
+	if(schedule.cardinality() == activityCount) {
 	    if(currentTime < currentBest) {
 		System.out.println("Better solution: " + currentBest + " -> " + currentTime);
 		currentBest = currentTime;
-		currentSchedule = node.getActivities();
+		currentSchedule = node.getActivityBeginings().clone();
 	    }
 	}
 	
 	//pridame vsechny mozne varianty - deti uzlu, ktere jsou v castecnem rozvrhu
-	for(Activity a : schedule.values()) {
-	    for(Activity n : a.getNext()) {
-		if(!schedule.containsKey(n.getName())) {
-		    Node added;
-		    Activity next = n.clone();	
+	//for(Activity a : schedule.values()) {
+	for (int i = schedule.nextSetBit(0); i >= 0; i = schedule.nextSetBit(i+1)) {
+	    Activity a = Main.activityList[i-1];
+	    
+	    for(Activity next : a.getNext()) {
+		//if(!schedule.containsKey(next.getName())) {
+		if(!schedule.get(next.getName())) {
+		    Node added;	
 
 		    if( currentTime + next.getDuration() < next.geteStart() ||
 			currentTime + next.getDuration() > next.getlStart()) {
@@ -90,10 +103,9 @@ public class Rcpsp {
 			}
 			
 			boolean add = true;
-			next.setStartTime(startTime);
 			//kontrola predku
-			for(Activity test : node.getPrev(next.getPrev())) { //to do - prev only ID
-			    if(test.getEndTime() > startTime) {
+			for(Activity test : next.getPrev()) { //to do - prev only ID
+			    if(node.getActivityEnd(test) > startTime) {
 				add = false;
 				break;
 			    }
@@ -101,20 +113,18 @@ public class Rcpsp {
 			if(add) {
 			    //kontrola zda neprekracuje limit
 			    if(startTime + next.getDuration() < currentBest && 
-				    checkPartialSchedule(schedule, next)) {
-				added = new Node(node, next);
+				    checkPartialSchedule(node, next, startTime)) {
+				added = new Node(node, next, startTime);
 				node.addChild(added);
 				//search(added);
 			    }
-			    next = n.clone();
 			}
 		    }
 
 		    //a nebo po ni, pokud je to syn libovolneho v rozvrhu
 		    if(currentTime + next.getDuration() < currentBest) {
-			next.setStartTime(currentTime);
-			if(checkPartialSchedule(schedule, next)) {
-			    added = new Node(node, next);
+			if(checkPartialSchedule(node, next, currentTime)) {
+			    added = new Node(node, next, currentTime);
 			    node.addChild(added);
 			    //search(added);
 			}
@@ -128,8 +138,7 @@ public class Rcpsp {
 	}
     }
     
-    int[][] time;
-    public boolean checkPartialSchedule(Map<Integer, Activity> partial, Activity last) {
+    public boolean checkPartialSchedule(Node node, Activity last, int lastActivityStartTime) {
 
 	//vymazani starych hodnot 
 	for(int i =0; i < time.length; i++) {
@@ -139,12 +148,14 @@ public class Rcpsp {
 	}
 	
 	final int resourcesSize = last.getResources().length;
-	final int start = last.getStartTime();
 	
-	for(Activity a : partial.values()) {
-	    if(a.getEndTime() > start) {
-		for(int i = a.getStartTime(); i < a.getEndTime(); i++) {
-		    int index = i - start;
+	//for(Activity a : node.getActivities().values()) {
+	for (int next = node.getActivities().nextSetBit(0); next >= 0; next = node.getActivities().nextSetBit(next+1)) {
+	    Activity a = Main.activityList[next-1];
+	    
+	    if(node.getActivityEnd(a) > lastActivityStartTime) {
+		for(int i = node.getActivityStart(a); i < node.getActivityEnd(a); i++) {
+		    int index = i - lastActivityStartTime;
 		    if(index >= 0 && index <= last.getDuration()) {
 			for(int r = 0; r < resourcesSize; r++) {
 			    time[index][r] += a.getResources()[r];
@@ -164,8 +175,8 @@ public class Rcpsp {
     @Override
     public String toString() {
 	String res = "> Optimal solution: " + currentBest + "\n";
-	for(Activity a : currentSchedule.values()) {
-	    res += "> " + a.getName() + ": start = " + a.getStartTime() + "->" + (a.getEndTime()) + "\n";
+	for(int i = 0; i < Main.activityList.length; i++) {
+	    res += "> " + (i+1) + ": start = " + currentSchedule[i] + "->" + (currentSchedule[i] + Main.activityList[i].getDuration()) + "\n";
 	}
 	res += "recursive calls: " + x;
 	return res;

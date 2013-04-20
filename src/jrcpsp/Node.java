@@ -1,6 +1,7 @@
 package jrcpsp;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,9 +15,12 @@ import java.util.Set;
  */
 public class Node {
     
-    private final HashMap<Integer, Activity> schedule;
-    private final Activity lastActivity;
+    //private final HashMap<Integer, Activity> schedule;
+    private final BitSet activities;
+    private final Activity addedActivity;
     private final int maxTime;
+    
+    private int[] activityBeginings;
     
     private final List<Node> children;
     private final Node prev;
@@ -24,45 +28,75 @@ public class Node {
     private boolean feasible;
     
     private final Set<Integer> beginings; //possible beginnings of activities during this partial schedule
+        
     
-    
-    public Node(Node prev, Activity activity) {
+    public Node(Node prev, Activity activity, int addedActivityStart) {
 	this.children = new ArrayList<>();
 	
 	this.prev = prev; 
-	this.lastActivity = activity;
+	this.addedActivity = activity;
 	
-	if(prev  != null) {
-	    schedule = new HashMap<>(prev.getActivities());
-	    this.maxTime = prev.getMaxTime() > lastActivity.getStartTime() + lastActivity.getDuration() ?
-		prev.getMaxTime() : lastActivity.getStartTime() + lastActivity.getDuration();
+	
+	if(prev != null) {
+	    //schedule = new HashMap<>(prev.getActivities());
+	    activities = (BitSet) prev.getActivities().clone();
+	    activityBeginings = prev.getActivityBeginings().clone();
+	    
+	    this.maxTime = prev.getMaxTime() > addedActivityStart + addedActivity.getDuration() ?
+		prev.getMaxTime() : addedActivityStart + addedActivity.getDuration();
+	    
 	}
 	else {
-	    schedule = new HashMap<>();
-	    this.maxTime = lastActivity.getStartTime() + lastActivity.getDuration();
+	    //schedule = new HashMap<>();
+	    activities = new BitSet();
+	    activityBeginings = new int[Main.activityList.length];
+	    for(int i = 0; i < activityBeginings.length; i++) {
+		activityBeginings[i] = Main.maxFinish * 100;
+	    }
+	    this.maxTime = addedActivityStart + addedActivity.getDuration();
 	}
 	
-	schedule.put(activity.getName(), activity);
+	//schedule.put(activity.getName(), activity);
+	activities.set(activity.getName());
+	this.setActivityStart(activity, addedActivityStart);
 	
+	beginings = new HashSet<>();//todo
+	beginings.add(addedActivityStart);
 	
-	beginings = new HashSet<>();
-	beginings.add(lastActivity.getStartTime());
-	for(Activity a : schedule.values()) {
-	    if(a.getEndTime() > lastActivity.getStartTime()) {
-		beginings.add(a.getEndTime());
+	for (int i = activities.nextSetBit(0); i >= 0; i = activities.nextSetBit(i+1)) {
+	    if(getActivityEnd(Main.activityList[i-1]) > addedActivityStart) {
+		beginings.add(getActivityEnd(Main.activityList[i-1]));
 	    }
 	}
+	
+//	for(Activity a : schedule.values()) {
+//	    if(getActivityEnd(a) > addedActivityStart) {
+//		beginings.add(getActivityEnd(a));
+//	    }
+//	}
 	
 	feasible = true;
     }
     
-    public List<Activity> getPrev(List<Activity> prev) {
-	for(Activity a : prev) {
-	    if(schedule.containsKey(a.getName())) {
-		a.setStartTime(schedule.get(a.getName()).getStartTime());
-	    }
-	}
-	return prev;
+//    public List<Activity> getPrev(List<Activity> prev) {
+//	for(Activity a : prev) {
+//	    if(schedule.containsKey(a.getName())) {
+//		a.setStartTime(schedule.get(a.getName()).getStartTime());
+//	    }
+//	}
+//	return prev;
+//    }
+    
+    public final void setActivityStart(Activity a, int start) {
+	activityBeginings[a.getName()-1] = start;
+    }
+    
+     public final int getActivityEnd(Activity a) {
+	return activityBeginings[a.getName()-1] + a.getDuration();
+    }
+    
+    public final int getActivityStart(Activity a) {
+	return activityBeginings[a.getName()-1];
     }
     
     
@@ -79,11 +113,13 @@ public class Node {
     }
     
     public void addActivity(Activity a) {
-	schedule.put(a.getName(), a);
+	activities.set(a.getName());
+	//schedule.put(a.getName(), a);
     }
     
-    public Map<Integer, Activity> getActivities() {
-	return schedule;
+    public BitSet getActivities() {
+	return activities;
+	//return schedule;
     }
     
 
@@ -100,7 +136,7 @@ public class Node {
     }
 
     public Activity getLastActivity() {
-	return lastActivity;
+	return addedActivity;
     }
 
     public int getMaxTime() {
@@ -110,6 +146,12 @@ public class Node {
     public Set<Integer> getBeginings() {
 	return beginings;
     }
+
+    public int[] getActivityBeginings() {
+	return activityBeginings;
+    }
+    
+    
     
     
     

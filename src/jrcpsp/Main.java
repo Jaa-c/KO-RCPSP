@@ -3,6 +3,7 @@ package jrcpsp;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,39 +15,43 @@ import java.util.regex.Pattern;
 public class Main {
     public static void main(String[] args) throws Exception {
 	
-//	Activity a1 = new Activity(1, 4, new int[] {2, 0});
-//	Activity a2 = new Activity(2, 3, new int[] {3, 0});
-//	Activity a3 = new Activity(3, 2, new int[] {1, 0});
-//	Activity a4 = new Activity(4, 5, new int[] {1, 0});
-//	Activity a5 = new Activity(5, 2, new int[] {4, 0});
+	
+//	activityList = new Activity[7];
+//	activityList[0] = new Activity(1, 4, new int[] {2, 0});
+//	activityList[1] = new Activity(2, 3, new int[] {3, 0});
+//	activityList[2] = new Activity(3, 2, new int[] {1, 0});
+//	activityList[3] = new Activity(4, 5, new int[] {1, 0});
+//	activityList[4] = new Activity(5, 2, new int[] {4, 0});
 //	
-//	Activity a6 = new Activity(6, 2, new int[] {2, 0});
-//	Activity a7 = new Activity(7, 2, new int[] {0, 8});
+//	activityList[5] = new Activity(6, 2, new int[] {2, 0});
+//	activityList[6] = new Activity(7, 2, new int[] {0, 8});
 //	
-//	a1.addNext(a2).addNext(a4).addNext(a6);
-//	a2.addNext(a3);
-//	a4.addNext(a5).addNext(a7);
+//	activityList[0].addNext(activityList[1]).addNext(activityList[3]).addNext(activityList[5]);
+//	activityList[1].addNext(activityList[2]);
+//	activityList[3].addNext(activityList[4]).addNext(activityList[6]);
 //	
-//	Activity start = a1;
-//	activities = 7;
+//	Activity start = activityList[0];
 //	resources = new int[] {4, 8};
 //	maxDuration = 5;
+//	maxFinish = 21;
+//	findEStart(activityList[0], 0, maxFinish);
 	
 	Activity start = parsePSPlibData("data/j301_7.sm");
 	
-	Rcpsp sheduling = new Rcpsp(start, activities, resources, maxDuration);
+	Rcpsp sheduling = new Rcpsp(start, activityList.length, resources, maxDuration);
 	sheduling.search();
 	System.out.println(sheduling);
 
     }
     
-    private static int maxDuration = 0;
-    private static int activities;
+    public static Activity[] activityList;
+    public static int maxDuration = 0;
+    public static int maxFinish = 0;
     private static int[] resources;
     
     public static Activity parsePSPlibData(String file) throws Exception {
 	
-	int maxFinish = 0;
+	int activities = -1;
 	
 	BufferedReader br = new BufferedReader(new FileReader(file));
 	skip(br, 5);
@@ -59,20 +64,20 @@ public class Main {
 	skip(br, 48);
 	
 	//nacteme duration a resources
-	Activity[] act = new Activity[activities];
+	activityList = new Activity[activities];
 	String[] line;
 	for (int i = 0; i < activities; i++) {
 	    line = br.readLine().split("\\s+");
 	    int[] res = new int[] {Integer.parseInt(line[4]), Integer.parseInt(line[5]), Integer.parseInt(line[6]), Integer.parseInt(line[7])};
-	    act[i] = new Activity(
+	    activityList[i] = new Activity(
 		    Integer.parseInt(line[1]),
 		    Integer.parseInt(line[3]), 
 		    res);
 	    
-	    maxFinish += act[i].getDuration();
+	    maxFinish += activityList[i].getDuration();
 	    
-	    if(act[i].getDuration() > maxDuration) {
-		maxDuration = act[i].getDuration();
+	    if(activityList[i].getDuration() > maxDuration) {
+		maxDuration = activityList[i].getDuration();
 	    }
 	
 	}
@@ -95,17 +100,17 @@ public class Main {
 	    line = br.readLine().split("\\s+");
 	    for(int n = 1; n <= Integer.parseInt(line[3]); n++) {
 		int a = Integer.parseInt(line[3+n]);
-		act[i].addNext(act[a - 1]);	    
+		activityList[i].addNext(activityList[a - 1]);	    
 	    }
 	}
 	
 	//nastavime max a min moznej start a konec
 
 	
-	findEStart(act[0], 0, maxFinish);
+	findEStart(activityList[0], 0, maxFinish);
 	
 	
-	return act[0];
+	return activityList[0];
     }
     
     private static void findEStart(Activity a, int start, int maxF) {

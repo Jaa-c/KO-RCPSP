@@ -18,8 +18,8 @@ public class Activity implements Cloneable {
     private final int duration;
     private final int[] resources;
     
-    private int startTime;
-    private int endTime;
+    //private int startTime;
+    //private int endTime;
     
     //private int eFinish;
     private int eStart;
@@ -35,7 +35,7 @@ public class Activity implements Cloneable {
 	this.duration = duration;
 	this.resources = resources;
 	
-	startTime = Integer.MAX_VALUE - duration;
+	//startTime = Integer.MAX_VALUE - duration;
     
     }
 
@@ -67,18 +67,18 @@ public class Activity implements Cloneable {
 	return resources;
     }
 
-    public int getStartTime() {
-	return startTime;
-    }
+//    public int getStartTime() {
+//	return startTime;
+//    }
     
-    public int getEndTime() {
-	return endTime;
-    }
+//    public int getEndTime() {
+//	return endTime;
+//    }
 
-    public void setStartTime(int startTime) {
-	endTime = startTime + duration;
-	this.startTime = startTime;
-    }
+//    public void setStartTime(int startTime) {
+//	endTime = startTime + duration;
+//	this.startTime = startTime;
+//    }
 
     public int getName() {
 	return name;
@@ -116,14 +116,14 @@ public class Activity implements Cloneable {
 	this.lStart = lStart;
     }
     
-    @Override
-    protected Activity clone()  {
-	try {
-	    return (Activity) super.clone();
-	}
-	catch (CloneNotSupportedException e) {
-	    return null;
-	}
-    }
+//    @Override
+//    protected Activity clone()  {
+//	try {
+//	    return (Activity) super.clone();
+//	}
+//	catch (CloneNotSupportedException e) {
+//	    return null;
+//	}
+//    }
 
 }
