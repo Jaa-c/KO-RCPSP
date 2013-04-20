@@ -61,9 +61,6 @@ public class Node {
 	    if(schedule.containsKey(a.getName())) {
 		a .setStartTime(schedule.get(a.getName()).getStartTime());
 	    }
-	    else {
-		System.out.println("no");
-	    }
 	}
 	return prev;
     }

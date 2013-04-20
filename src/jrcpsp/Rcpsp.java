@@ -20,6 +20,8 @@ public class Rcpsp {
     
     private int currentBest;
     private Map<Integer, Activity> currentSchedule;
+    
+    public static int x = 0;
 
     public Rcpsp(Activity firstActivity, int activityCount, int resourcesLimit) {
 	this.firstActivity = firstActivity;
@@ -42,13 +44,15 @@ public class Rcpsp {
 	    return;
 	}
 	
+	x++;
+	
 	Map<Integer, Activity> schedule = node.getActivities();
 	int time = node.getMaxTime();
 	
-	for (Activity a : schedule.values()) {
-	    System.out.print(a.getName());
-	}
-	System.out.println(" -> " + time);
+//	for (Activity a : schedule.values()) {
+//	    System.out.print(a.getName());
+//	}
+//	System.out.println(" -> " + time);
 	
 	//rozvrh je kompletni
 	if(schedule.size() == activityCount) {
@@ -79,10 +83,11 @@ public class Rcpsp {
 			}
 			if(add) {
 			    //kontrola zda neprekracuje limit
-			    if(checkPartialSchedule(schedule, next)) {
+			    if(time + next.getDuration() < currentBest && 
+				    checkPartialSchedule(schedule, next)) {
 				added = new Node(node, next);
 				node.addChild(added);
-				//search(added);
+				search(added);
 			    }
 			    next = n.clone();
 			}
@@ -94,16 +99,16 @@ public class Rcpsp {
 			if(checkPartialSchedule(schedule, next)) {
 			    added = new Node(node, next);
 			    node.addChild(added);
-			    //search(added);
+			    search(added);
 			}
 		    }
 		}
 	    }
 	}
 	
-	for(Node n : node.getChildren()) {
-	    search(n);
-	}
+//	for(Node n : node.getChildren()) {
+//	    search(n);
+//	}
     }
     
     
@@ -139,6 +144,7 @@ public class Rcpsp {
 	for(Activity a : currentSchedule.values()) {
 	    res += "> " + a.getName() + ": start = " + a.getStartTime() + "->" + (a.getEndTime()) + "\n";
 	}
+	res += "recursive calls: " + x;
 	return res;
     }
     
