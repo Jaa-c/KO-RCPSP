@@ -13,9 +13,8 @@ import java.util.Map;
 public class Rcpsp {
     
     private Node rootNode;
-    private Activity firstActivity;
     
-    private final int resourcesLimit;
+    private final int[] resourcesLimit;
     private final int activityCount;
     
     private int currentBest;
@@ -23,10 +22,9 @@ public class Rcpsp {
     
     public static int x = 0;
 
-    public Rcpsp(Activity firstActivity, int activityCount, int resourcesLimit) {
-	this.firstActivity = firstActivity;
-	firstActivity.setStartTime(0);
+    public Rcpsp(Activity firstActivity, int activityCount, int[] resourcesLimit) {
 	
+	firstActivity.setStartTime(0);
 	this.rootNode = new Node(null, firstActivity);
 	this.resourcesLimit = resourcesLimit;
 	this.activityCount = activityCount;
@@ -57,7 +55,7 @@ public class Rcpsp {
 	//rozvrh je kompletni
 	if(schedule.size() == activityCount) {
 	    if(time < currentBest) { //tohle by melo byt opet zbytecny a projit vzdy
-		System.out.println("Better solution: " + currentBest + " -> " + time);
+		//System.out.println("Better solution: " + currentBest + " -> " + time);
 		currentBest = time;
 		currentSchedule = node.getActivities();
 	    }
@@ -117,17 +115,21 @@ public class Rcpsp {
 	List<Activity> list = new ArrayList<>(partial.values());
 	list.add(last);
 	
-	int[] time = new int[last.getDuration() + 1];
-	int start = last.getStartTime();
+	final int resourcesSize = last.getResources().length;
+	
+	int[][] time = new int[last.getDuration() + 1][resourcesSize];
+	final int start = last.getStartTime();
 	
 	for(Activity a : list) {
 	    if(a.getEndTime() > start) {
 		for(int i = a.getStartTime(); i < a.getEndTime(); i++) {
 		    int index = i-start;
 		    if(index >= 0 && index <= last.getDuration()) {
-			time[index] += a.getResources();
-			if(time[index] > resourcesLimit) {
-			    return false;
+			for(int r = 0; r < resourcesSize; r++) {
+			    time[index][r] += a.getResources()[r];
+			    if(time[index][r] > resourcesLimit[r]) {
+				return false;
+			    }
 			}
 		    }
 		}

@@ -15,13 +15,13 @@ public class Activity implements Cloneable {
     
     private final int name;
     
-    private int duration;
-    private int resources;
+    private final int duration;
+    private final int[] resources;
     
     private int startTime;
     
     
-    public Activity(int name, int duration, int resources) {
+    public Activity(int name, int duration, int[] resources) {
 	next = new ArrayList<>();
 	prev = new ArrayList<>();
 	
@@ -55,16 +55,8 @@ public class Activity implements Cloneable {
 	return duration;
     }
 
-    public void setDuration(int duration) {
-	this.duration = duration;
-    }
-
-    public int getResources() {
+    public int[] getResources() {
 	return resources;
-    }
-
-    public void setResources(int resources) {
-	this.resources = resources;
     }
 
     public int getStartTime() {
