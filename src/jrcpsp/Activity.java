@@ -19,8 +19,12 @@ public class Activity implements Cloneable {
     private final int[] resources;
     
     private int startTime;
-    
     private int endTime;
+    
+    //private int eFinish;
+    private int eStart;
+    //private int lFinish;
+    private int lStart;
     
     
     public Activity(int name, int duration, int[] resources) {
@@ -79,7 +83,39 @@ public class Activity implements Cloneable {
     public int getName() {
 	return name;
     }
+//
+//    public int geteFinish() {
+//	return eFinish;
+//    }
+//
+//    public void seteFinish(int eFinish) {
+//	this.eFinish = eFinish;
+//    }
 
+    public int geteStart() {
+	return eStart;
+    }
+
+    public void seteStart(int eStart) {
+	this.eStart = eStart;
+    }
+
+//    public int getlFinish() {
+//	return lFinish;
+//    }
+//
+//    public void setlFinish(int lFinish) {
+//	this.lFinish = lFinish;
+//    }
+
+    public int getlStart() {
+	return lStart;
+    }
+
+    public void setlStart(int lStart) {
+	this.lStart = lStart;
+    }
+    
     @Override
     protected Activity clone()  {
 	try {

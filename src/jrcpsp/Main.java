@@ -45,6 +45,9 @@ public class Main {
     private static int[] resources;
     
     public static Activity parsePSPlibData(String file) throws Exception {
+	
+	int maxFinish = 0;
+	
 	BufferedReader br = new BufferedReader(new FileReader(file));
 	skip(br, 5);
 	
@@ -60,10 +63,13 @@ public class Main {
 	String[] line;
 	for (int i = 0; i < activities; i++) {
 	    line = br.readLine().split("\\s+");
+	    int[] res = new int[] {Integer.parseInt(line[4]), Integer.parseInt(line[5]), Integer.parseInt(line[6]), Integer.parseInt(line[7])};
 	    act[i] = new Activity(
 		    Integer.parseInt(line[1]),
 		    Integer.parseInt(line[3]), 
-		    new int[] {Integer.parseInt(line[4]), Integer.parseInt(line[5]), Integer.parseInt(line[6]), Integer.parseInt(line[7])});
+		    res);
+	    
+	    maxFinish += act[i].getDuration();
 	    
 	    if(act[i].getDuration() > maxDuration) {
 		maxDuration = act[i].getDuration();
@@ -93,8 +99,32 @@ public class Main {
 	    }
 	}
 	
+	//nastavime max a min moznej start a konec
+
+	
+	findEStart(act[0], 0, maxFinish);
+	
+	
 	return act[0];
     }
+    
+    private static void findEStart(Activity a, int start, int maxF) {
+	a.seteStart(start);
+	for(Activity n : a.getNext()) {
+	    findEStart(n, start + a.getDuration(), maxF);
+	}
+	if(a.getNext().isEmpty()) {
+	    findLStart(a, maxF - a.getDuration());
+	}
+    }
+    
+    private static void findLStart(Activity a, int start) {
+	a.setlStart(start);
+	for(Activity n : a.getPrev()) {
+	    findLStart(n, start - a.getDuration());
+	}
+    }
+    
     
     private static void skip(BufferedReader br, int lines) throws IOException {
     for (int i = 0; i < lines; i++) {
