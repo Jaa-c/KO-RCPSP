@@ -1,3 +1,7 @@
-build
-bin
-dist
+build/
+bin/
+dist/
+nbproject/
+data/
+*.log
+*.class
