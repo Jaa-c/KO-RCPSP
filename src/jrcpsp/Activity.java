@@ -20,6 +20,8 @@ public class Activity implements Cloneable {
     
     private int startTime;
     
+    private int endTime;
+    
     
     public Activity(int name, int duration, int[] resources) {
 	next = new ArrayList<>();
@@ -37,18 +39,20 @@ public class Activity implements Cloneable {
 	return next;
     }
 
-    protected void addNext(Activity next) {
+    protected Activity addNext(Activity next) {
 	this.next.add(next);
+	next.addPrev(this);
+	return this;
     }
 
     public List<Activity> getPrev() {
 	return prev;
     }
 
-    public Activity addPrev(Activity prev) {
+    public void addPrev(Activity prev) {
 	this.prev.add(prev);
-	prev.addNext(this);
-	return this;
+//	prev.addNext(this);
+//	return this;
     }
 
     public int getDuration() {
@@ -64,10 +68,11 @@ public class Activity implements Cloneable {
     }
     
     public int getEndTime() {
-	return startTime + duration;
+	return endTime;
     }
 
     public void setStartTime(int startTime) {
+	endTime = startTime + duration;
 	this.startTime = startTime;
     }
 

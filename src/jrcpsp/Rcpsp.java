@@ -22,7 +22,7 @@ public class Rcpsp {
     
     public static int x = 0;
 
-    public Rcpsp(Activity firstActivity, int activityCount, int[] resourcesLimit) {
+    public Rcpsp(Activity firstActivity, int activityCount, int[] resourcesLimit, int maxDuration) {
 	
 	firstActivity.setStartTime(0);
 	this.rootNode = new Node(null, firstActivity);
@@ -30,6 +30,8 @@ public class Rcpsp {
 	this.activityCount = activityCount;
 	
 	this.currentBest = Integer.MAX_VALUE;
+	
+	this.time = new int[maxDuration + 1][resourcesLimit.length];
     }
     
     public void search() {
@@ -43,6 +45,8 @@ public class Rcpsp {
 	}
 	
 	x++;
+//	if(x % 10000 == 0)
+//	    System.out.println(x);
 	
 	Map<Integer, Activity> schedule = node.getActivities();
 	int time = node.getMaxTime();
@@ -54,8 +58,8 @@ public class Rcpsp {
 	
 	//rozvrh je kompletni
 	if(schedule.size() == activityCount) {
-	    if(time < currentBest) { //tohle by melo byt opet zbytecny a projit vzdy
-		//System.out.println("Better solution: " + currentBest + " -> " + time);
+	    if(time < currentBest) {
+		System.out.println("Better solution: " + currentBest + " -> " + time);
 		currentBest = time;
 		currentSchedule = node.getActivities();
 	    }
@@ -85,7 +89,7 @@ public class Rcpsp {
 				    checkPartialSchedule(schedule, next)) {
 				added = new Node(node, next);
 				node.addChild(added);
-				search(added);
+				//search(added);
 			    }
 			    next = n.clone();
 			}
@@ -97,33 +101,35 @@ public class Rcpsp {
 			if(checkPartialSchedule(schedule, next)) {
 			    added = new Node(node, next);
 			    node.addChild(added);
-			    search(added);
+			    //search(added);
 			}
 		    }
 		}
 	    }
 	}
 	
-//	for(Node n : node.getChildren()) {
-//	    search(n);
-//	}
+	for(Node n : node.getChildren()) {
+	    search(n);
+	}
     }
     
-    
+    int[][] time;
     public boolean checkPartialSchedule(Map<Integer, Activity> partial, Activity last) {
-	
-	List<Activity> list = new ArrayList<>(partial.values());
-	list.add(last);
+
+	//vymazani starych hodnot 
+	for(int i =0; i < time.length; i++) {
+	    for(int j = 0; j < resourcesLimit.length; j++) {
+		time[i][j] = last.getResources()[j];
+	    }
+	}
 	
 	final int resourcesSize = last.getResources().length;
-	
-	int[][] time = new int[last.getDuration() + 1][resourcesSize];
 	final int start = last.getStartTime();
 	
-	for(Activity a : list) {
+	for(Activity a : partial.values()) {
 	    if(a.getEndTime() > start) {
 		for(int i = a.getStartTime(); i < a.getEndTime(); i++) {
-		    int index = i-start;
+		    int index = i - start;
 		    if(index >= 0 && index <= last.getDuration()) {
 			for(int r = 0; r < resourcesSize; r++) {
 			    time[index][r] += a.getResources()[r];

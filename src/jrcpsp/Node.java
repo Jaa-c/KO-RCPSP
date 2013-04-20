@@ -59,7 +59,7 @@ public class Node {
     public List<Activity> getPrev(List<Activity> prev) {
 	for(Activity a : prev) {
 	    if(schedule.containsKey(a.getName())) {
-		a .setStartTime(schedule.get(a.getName()).getStartTime());
+		a.setStartTime(schedule.get(a.getName()).getStartTime());
 	    }
 	}
 	return prev;
