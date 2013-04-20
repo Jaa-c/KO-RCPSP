@@ -42,19 +42,17 @@ public class Rcpsp {
     }
     
     public void search() {
-	search(rootNode);
+	search(rootNode, 0);
     }
 	
-    private void search(Node node) {
+    private void search(Node node, int lastActivityStart) {
 	
-	if(!node.isFeasible() || node.getMaxTime() > currentBest) {
+	if(node.getMaxTime() > currentBest) {
 	    return;
 	}
 	
 	BitSet schedule = node.getActivities();
 	int currentTime = node.getMaxTime();
-	
-	
 	
 	x++;
 	if(x % 10000 == 0)
@@ -91,13 +89,14 @@ public class Rcpsp {
 		if(!schedule.get(next.getName())) {
 		    Node added;	
 
-		    if( currentTime + next.getDuration() < next.geteStart() ||
-			currentTime + next.getDuration() > next.getlStart()) {
+		    if( currentTime + next.getDuration() < next.geteStart()) {
+			//currentTime + next.getDuration() > next.getlStart()) { todo
 			continue; //asap
 		    }
 		    
 		    //muzu ji pridat ted hned, pokud je jeji predek driv
-		    for(int startTime : node.getBeginings()) {
+		    //for(int startTime : node.getBeginings()) {
+		    for(int startTime = lastActivityStart; startTime < currentTime; startTime++) {
 			if(startTime < next.geteStart() || startTime > next.getlStart()) {
 			    continue;
 			}
@@ -116,7 +115,7 @@ public class Rcpsp {
 				    checkPartialSchedule(node, next, startTime)) {
 				added = new Node(node, next, startTime);
 				node.addChild(added);
-				//search(added);
+				search(added, startTime);
 			    }
 			}
 		    }
@@ -126,16 +125,16 @@ public class Rcpsp {
 			if(checkPartialSchedule(node, next, currentTime)) {
 			    added = new Node(node, next, currentTime);
 			    node.addChild(added);
-			    //search(added);
+			    search(added, currentTime);
 			}
 		    }
 		}
 	    }
 	}
 	
-	for(Node n : node.getChildren()) {
-	    search(n);
-	}
+//	for(Node n : node.getChildren()) {
+//	    search(n);
+//	}
     }
     
     public boolean checkPartialSchedule(Node node, Activity last, int lastActivityStartTime) {
