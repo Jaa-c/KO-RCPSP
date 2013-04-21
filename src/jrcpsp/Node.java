@@ -1,8 +1,8 @@
 package jrcpsp;
 
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
@@ -15,25 +15,26 @@ public class Node {
     private int[] activityBeginings;
     
     //private final Activity addedActivity;
-    private final int maxTime;
+    private int maxTime;
+    private int minPossibleFinish;
     
-    private final List<Node> children;
-    //private final Node prev;
-        
+    private final Set<Integer> beginings;
     
     public Node(Node prev, Activity addedActivity, int addedActivityStart) {
-	this.children = new ArrayList<>();
 	
-	//this.addedActivity = activity;
+	//this.addedActivity = addedActivity;
 	
 	
 	if(prev != null) {
 	    activities = (BitSet) prev.getActivities().clone();
 	    activityBeginings = prev.getActivityBeginings().clone();
 	    
-	    this.maxTime = prev.getMaxTime() > addedActivityStart + addedActivity.getDuration() ?
-		prev.getMaxTime() : addedActivityStart + addedActivity.getDuration();
+	    int cmt = addedActivityStart + addedActivity.getDuration() ;
+	    maxTime = prev.getMaxTime() > cmt ? prev.getMaxTime() : cmt;
 	    
+	    int cmpf = addedActivityStart + addedActivity.getDuration() + addedActivity.getMinTimeAfter();
+	    minPossibleFinish = prev.getMinPossibleFinish() > cmpf ? prev.getMinPossibleFinish() : cmpf;
+	
 	}
 	else {
 	    activities = new BitSet();
@@ -41,20 +42,33 @@ public class Node {
 	    for(int i = 0; i < activityBeginings.length; i++) {
 		activityBeginings[i] = Main.maxFinish * 100;
 	    }
-	    this.maxTime = addedActivityStart + addedActivity.getDuration();
+	    
+	    maxTime = addedActivity.getDuration();
+	    minPossibleFinish = addedActivity.getDuration() + addedActivity.getMinTimeAfter();
 	}
+	
 	
 	activities.set(addedActivity.getName());
 	this.setActivityStart(addedActivity, addedActivityStart);
 	
+	beginings = new HashSet<>();
+	beginings.add(addedActivityStart);
+	for (int i = activities.nextSetBit(0); i >= 0; i = activities.nextSetBit(i+1)) {
+	    Activity a = Main.activityList[i-1];
+	    if(getActivityEnd(a) > addedActivityStart) {
+		beginings.add(getActivityEnd(a));
+	    }
+	}
+	
     }
+    
     
     
     public final void setActivityStart(Activity a, int start) {
 	activityBeginings[a.getName()-1] = start;
     }
     
-     public final int getActivityEnd(Activity a) {
+    public final int getActivityEnd(Activity a) {
 	return activityBeginings[a.getName()-1] + a.getDuration();
     }
     
@@ -62,18 +76,6 @@ public class Node {
 	return activityBeginings[a.getName()-1];
     }
     
-    
-    public void addChild(Node n) {
-	children.add(n);
-    }
-    
-    public void addChildren(List<Node> n) {
-	children.addAll(n);
-    }
-    
-    public List<Node> getChildren() {
-	return children;
-    }
     
     public void addActivity(Activity a) {
 	activities.set(a.getName());
@@ -83,30 +85,27 @@ public class Node {
 	return activities;
     }
     
-//    public Node getPrev() {
-//	return prev;
-//    }
-
 //    public Activity getLastActivity() {
 //	return addedActivity;
 //    }
 
+    
     public int getMaxTime() {
 	return maxTime;
     }
 
-//    public Set<Integer> getBeginings() {
-//	return beginings;
-//    }
+    public Set<Integer> getBeginings() {
+	return beginings;
+    }
 
     public int[] getActivityBeginings() {
 	return activityBeginings;
     }
-    
-    
-    
-    
-    
+
+    public int getMinPossibleFinish() {
+	return minPossibleFinish;
+    }
+   
     
 
 }

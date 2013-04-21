@@ -21,6 +21,7 @@ public class Rcpsp {
     private int[][] time;
     
     public static int x = 0;
+    public static int y = 0;
     
     private BitSet end;
 
@@ -42,12 +43,13 @@ public class Rcpsp {
     }
     
     public void search() {
-	search(rootNode, 0);
+	search(rootNode);
     }
 	
-    private void search(Node node, int lastActivityStart) {
+    private void search(Node node) {
 	
 	if(node.getMaxTime() > currentBest) {
+	    y++;
 	    return;
 	}
 	
@@ -55,25 +57,19 @@ public class Rcpsp {
 	int currentTime = node.getMaxTime();
 	
 	x++;
-	if(x % 10000 == 0)
-	    System.out.println(x);
+	if(x % 1000000 == 0) {
+	    System.out.println(x + "/" + y + ": " + currentBest);
+	}
 	
-//	if(x  > 916300) {
-//	    System.out.println(currentTime);
-//	}
-	
-//	for (Activity a : schedule.values()) {
-//	    System.out.print(a.getName());
+//	for (int i = schedule.nextSetBit(0); i >= 0; i = schedule.nextSetBit(i+1)) {
+//	    System.out.print(Main.activityList[i-1].getName());
 //	}
 //	System.out.println(" -> " + currentTime);
 	
-	
 	//rozvrh je kompletni
-	//if(schedule.size()== activityCount) {
-	//if(schedule.get(Main.activityList.length)) {
 	if(schedule.cardinality() == activityCount) {
 	    if(currentTime < currentBest) {
-		System.out.println("Better solution: " + currentBest + " -> " + currentTime);
+		System.out.println("["  + x + "] Better solution: " + currentBest + " -> " + currentTime);
 		currentBest = currentTime;
 		currentSchedule = node.getActivityBeginings().clone();
 	    }
@@ -85,25 +81,31 @@ public class Rcpsp {
 	    Activity a = Main.activityList[i-1];
 	    
 	    for(Activity next : a.getNext()) {
-		//if(!schedule.containsKey(next.getName())) {
 		if(!schedule.get(next.getName())) {
-		    Node added;	
 
-		    if( currentTime + next.getDuration() < next.geteStart()) {
-			//currentTime + next.getDuration() > next.getlStart()) { todo
+		    if( currentTime + next.getDuration() < next.geteStart()) { 
 			continue; //asap
+		    }
+		    else {
+			//y++;
 		    }
 		    
 		    //muzu ji pridat ted hned, pokud je jeji predek driv
-		    //for(int startTime : node.getBeginings()) {
-		    for(int startTime = lastActivityStart; startTime < currentTime; startTime++) {
-			if(startTime < next.geteStart() || startTime > next.getlStart()) {
+		    for(int startTime : node.getBeginings()) {
+			if(startTime < next.geteStart() || startTime > next.getLatestStart()) {
 			    continue;
+			}
+			else {
+			    //y++;
+			}
+			
+			if(x == 40) {
+			    x = 40;
 			}
 			
 			boolean add = true;
 			//kontrola predku
-			for(Activity test : next.getPrev()) { //to do - prev only ID
+			for(Activity test : next.getPrev()) { 
 			    if(node.getActivityEnd(test) > startTime) {
 				add = false;
 				break;
@@ -111,46 +113,48 @@ public class Rcpsp {
 			}
 			if(add) {
 			    //kontrola zda neprekracuje limit
-			    if(startTime + next.getDuration() < currentBest && 
+			    if(startTime + next.getDuration()  < currentBest && //+ next.getMinTimeAfter()
 				    checkPartialSchedule(node, next, startTime)) {
-				added = new Node(node, next, startTime);
-				node.addChild(added);
-				search(added, startTime);
+				
+				search(new Node(node, next, startTime));
 			    }
+			    else {
+			    	break;
+			    }
+			}
+			else {
+			    y++;
 			}
 		    }
 
 		    //a nebo po ni, pokud je to syn libovolneho v rozvrhu
-		    if(currentTime + next.getDuration() < currentBest) {
-			if(checkPartialSchedule(node, next, currentTime)) {
-			    added = new Node(node, next, currentTime);
-			    node.addChild(added);
-			    search(added, currentTime);
-			}
+		    if(currentTime + next.getDuration()  < currentBest && //+ next.getMinTimeAfter()
+			    checkPartialSchedule(node, next, currentTime)) {
+			
+			search(new Node(node, next, currentTime));
+		    }
+		    else {
+			y++;
 		    }
 		}
 	    }
 	}
 	
-//	for(Node n : node.getChildren()) {
-//	    search(n);
-//	}
     }
     
-    public boolean checkPartialSchedule(Node node, Activity last, int lastActivityStartTime) {
+    public boolean checkPartialSchedule(final Node node, final Activity last, final int lastActivityStartTime) {
 
 	//vymazani starych hodnot 
 	for(int i =0; i < time.length; i++) {
 	    for(int j = 0; j < resourcesLimit.length; j++) {
-		time[i][j] = last.getResources()[j];
+		time[i][j] = 0;//last.getResources()[j];
 	    }
 	}
 	
 	final int resourcesSize = last.getResources().length;
 	
-	//for(Activity a : node.getActivities().values()) {
 	for (int next = node.getActivities().nextSetBit(0); next >= 0; next = node.getActivities().nextSetBit(next+1)) {
-	    Activity a = Main.activityList[next-1];
+	    final Activity a = Main.activityList[next-1];
 	    
 	    if(node.getActivityEnd(a) > lastActivityStartTime) {
 		for(int i = node.getActivityStart(a); i < node.getActivityEnd(a); i++) {

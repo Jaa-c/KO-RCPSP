@@ -16,27 +16,27 @@ public class Main {
     public static void main(String[] args) throws Exception {
 	
 	
-//	activityList = new Activity[7];
-//	activityList[0] = new Activity(1, 4, new int[] {2, 0});
-//	activityList[1] = new Activity(2, 3, new int[] {3, 0});
-//	activityList[2] = new Activity(3, 2, new int[] {1, 0});
-//	activityList[3] = new Activity(4, 5, new int[] {1, 0});
-//	activityList[4] = new Activity(5, 2, new int[] {4, 0});
-//	
-//	activityList[5] = new Activity(6, 2, new int[] {2, 0});
-//	activityList[6] = new Activity(7, 2, new int[] {0, 8});
-//	
-//	activityList[0].addNext(activityList[1]).addNext(activityList[3]).addNext(activityList[5]);
-//	activityList[1].addNext(activityList[2]);
-//	activityList[3].addNext(activityList[4]).addNext(activityList[6]);
-//	
-//	Activity start = activityList[0];
-//	resources = new int[] {4, 8};
-//	maxDuration = 5;
-//	maxFinish = 21;
-//	findEStart(activityList[0], 0, maxFinish);
+	activityList = new Activity[7];
+	activityList[0] = new Activity(1, 4, new int[] {2, 0});
+	activityList[1] = new Activity(2, 3, new int[] {3, 0});
+	activityList[2] = new Activity(3, 2, new int[] {1, 0});
+	activityList[3] = new Activity(4, 5, new int[] {1, 0});
+	activityList[4] = new Activity(5, 2, new int[] {4, 0});
 	
-	Activity start = parsePSPlibData("data/j301_7.sm");
+	activityList[5] = new Activity(6, 2, new int[] {2, 0});
+	activityList[6] = new Activity(7, 2, new int[] {0, 8});
+	
+	activityList[0].addNext(activityList[1]).addNext(activityList[3]).addNext(activityList[5]);
+	activityList[1].addNext(activityList[2]);
+	activityList[3].addNext(activityList[4]).addNext(activityList[6]);
+	
+	Activity start = activityList[0];
+	resources = new int[] {4, 8};
+	maxDuration = 5;
+	maxFinish = 21;
+	findEStart(activityList[0], 0);
+	
+	start = parsePSPlibData("data/j301_7.sm");
 	
 	Rcpsp sheduling = new Rcpsp(start, activityList.length, resources, maxDuration);
 	sheduling.search();
@@ -107,24 +107,26 @@ public class Main {
 	//nastavime max a min moznej start a konec
 
 	
-	findEStart(activityList[0], 0, maxFinish);
+	findEStart(activityList[0], 0);
 	
 	
 	return activityList[0];
     }
     
-    private static void findEStart(Activity a, int start, int maxF) {
-	a.seteStart(start);
+    //musim uvazovat nekolik ruznejch resourcu!!!!!!!!!!!!!!!!!!!!!!!!!!
+    private static void findEStart(Activity a, int start) {
+	a.setEarliestStart(start);
 	for(Activity n : a.getNext()) {
-	    findEStart(n, start + a.getDuration(), maxF);
+	    findEStart(n, start + a.getDuration());
 	}
 	if(a.getNext().isEmpty()) {
-	    findLStart(a, maxF - a.getDuration());
+	    findLStart(a, maxFinish - a.getDuration());
 	}
     }
     
     private static void findLStart(Activity a, int start) {
 	a.setlStart(start);
+	a.setMinTimeAfter(maxFinish - start);
 	for(Activity n : a.getPrev()) {
 	    findLStart(n, start - a.getDuration());
 	}

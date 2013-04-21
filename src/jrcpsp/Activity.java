@@ -25,6 +25,15 @@ public class Activity implements Cloneable {
     private int eStart;
     //private int lFinish;
     private int lStart;
+    private int minTimeAfter;
+
+    public int getMinTimeAfter() {
+	return minTimeAfter;
+    }
+
+    public void setMinTimeAfter(int minTimeAfter) {
+	this.minTimeAfter = minTimeAfter;
+    }
     
     
     public Activity(int name, int duration, int[] resources) {
@@ -96,7 +105,7 @@ public class Activity implements Cloneable {
 	return eStart;
     }
 
-    public void seteStart(int eStart) {
+    public void setEarliestStart(int eStart) {
 	this.eStart = eStart;
     }
 
@@ -108,7 +117,7 @@ public class Activity implements Cloneable {
 //	this.lFinish = lFinish;
 //    }
 
-    public int getlStart() {
+    public int getLatestStart() {
 	return lStart;
     }
 
