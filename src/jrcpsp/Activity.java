@@ -101,7 +101,7 @@ public class Activity implements Cloneable {
 //	this.eFinish = eFinish;
 //    }
 
-    public int geteStart() {
+    public int setEarliestStart() {
 	return eStart;
     }
 
@@ -121,7 +121,7 @@ public class Activity implements Cloneable {
 	return lStart;
     }
 
-    public void setlStart(int lStart) {
+    public void setLatestStart(int lStart) {
 	this.lStart = lStart;
     }
     

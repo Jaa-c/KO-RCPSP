@@ -29,6 +29,7 @@ public class Main {
 	activityList[0].addNext(activityList[1]).addNext(activityList[3]).addNext(activityList[5]);
 	activityList[1].addNext(activityList[2]);
 	activityList[3].addNext(activityList[4]).addNext(activityList[6]);
+	activityList[6].addNext(activityList[5]);
 	
 	Activity start = activityList[0];
 	resources = new int[] {4, 8};
@@ -113,7 +114,6 @@ public class Main {
 	return activityList[0];
     }
     
-    //musim uvazovat nekolik ruznejch resourcu!!!!!!!!!!!!!!!!!!!!!!!!!!
     private static void findEStart(Activity a, int start) {
 	a.setEarliestStart(start);
 	for(Activity n : a.getNext()) {
@@ -125,8 +125,10 @@ public class Main {
     }
     
     private static void findLStart(Activity a, int start) {
-	a.setlStart(start);
-	a.setMinTimeAfter(maxFinish - start);
+	a.setLatestStart(start);
+	if(a.getMinTimeAfter() < maxFinish - start) {
+	    a.setMinTimeAfter(maxFinish - start);
+	}
 	for(Activity n : a.getPrev()) {
 	    findLStart(n, start - a.getDuration());
 	}
