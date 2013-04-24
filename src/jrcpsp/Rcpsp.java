@@ -1,6 +1,8 @@
 package jrcpsp;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 
 /**
  *
@@ -42,9 +44,37 @@ public class Rcpsp {
 	}
     }
     
+    List<Integer> list = new ArrayList<>();
+    
     public void search() {
+	//list.add(0);
 	search(rootNode);
+	//System.out.println(x);
     }
+    
+//    public void search2(Node node) {
+//	x++;
+//	for(int i : list) {
+//	    System.out.print(i + ",");
+//	}
+//	System.out.println("");
+//	
+//	BitSet schedule = (BitSet) node.getActivities();
+//	
+//	for (int i = schedule.nextSetBit(0); i >= 0; i = schedule.nextSetBit(i+1)) {
+//	    Activity a = Main.activityList[i-1];
+//	    
+//	    for(Activity next : a.getNext()) {
+//		if(!schedule.get(next.getName())) {
+//		    list.add(next.getName());
+//		    search2(new Node(node, next, 0));
+//		    list.remove((Integer)next.getName());
+//		}
+//	    }
+//	    //search(new Node(node, next, currentTime));
+//	}
+//    }
+    
     
     final boolean verbose = false;
     
@@ -78,6 +108,7 @@ public class Rcpsp {
 		System.out.println("["  + x + "] Better solution: " + currentBest + " -> " + currentTime);
 		currentBest = currentTime;
 		currentSchedule = node.getActivityBeginings().clone();
+		//System.out.println(this);
 	    }
 	    return;
 	}
@@ -122,16 +153,16 @@ public class Rcpsp {
 			}
 			if(add) {
 			    //kontrola zda neprekracuje limit
-			    if(startTime + next.getDuration() < currentBest && //+ next.getMinTimeAfter()
+			    if(startTime + next.getDuration() + next.getMinTimeAfter() < currentBest && // + next.getMinTimeAfter() 
 				    checkPartialSchedule(node, next, startTime)) {
 				if(verbose) System.out.print("o" + next.getName() + " ");
 
 				search(new Node(node, next, startTime));
-				return;
+				//return;
 				//break; //?
 			    }
 			    else {
-			    	break;
+				y++;
 			    }
 			}
 			else {
@@ -140,14 +171,26 @@ public class Rcpsp {
 		    }
 
 		    //a nebo po ni, pokud je to syn libovolneho v rozvrhu
-		    if(currentTime + next.getDuration() < currentBest && //+ next.getMinTimeAfter()
-			    checkPartialSchedule(node, next, currentTime)) {
-			if(verbose) System.out.print("x" + next.getName() + " ");
-			search(new Node(node, next, currentTime));
-		    }
-		    else {
-			y++;
-		    }
+//		    boolean add = true;
+//		    for(Activity test : next.getPrev()) { 
+//			if(node.getActivityEnd(test) > currentTime) {
+//			    add = false;
+//			    break;
+//			}
+//		    }
+//		    if(add) {
+//			if(currentTime + next.getDuration() < currentBest && //+ next.getMinTimeAfter() 
+//				checkPartialSchedule(node, next, currentTime)) {
+//			    if(verbose) System.out.print("x" + next.getName() + " ");
+//			    search(new Node(node, next, currentTime));
+//			}
+//			else {
+//			    y++;
+//			}
+//		    }
+//		    else {
+//			y++;
+//		    }
 		}
 	    }
 	}

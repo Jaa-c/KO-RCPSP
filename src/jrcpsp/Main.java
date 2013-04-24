@@ -16,25 +16,30 @@ public class Main {
     public static void main(String[] args) throws Exception {
 	
 	
-	activityList = new Activity[7];
+	activityList = new Activity[9];
 	activityList[0] = new Activity(1, 4, new int[] {2, 0});
 	activityList[1] = new Activity(2, 3, new int[] {3, 0});
 	activityList[2] = new Activity(3, 2, new int[] {1, 0});
 	activityList[3] = new Activity(4, 5, new int[] {1, 0});
 	activityList[4] = new Activity(5, 2, new int[] {4, 0});
-	
 	activityList[5] = new Activity(6, 2, new int[] {2, 0});
-	activityList[6] = new Activity(7, 2, new int[] {0, 8});
+	activityList[6] = new Activity(7, 2, new int[] {0, 8});//20
+	
+	
+	activityList[7] = new Activity(8, 4, new int[] {0, 4});
+	activityList[8] = new Activity(9, 4, new int[] {3, 0});
 	
 	activityList[0].addNext(activityList[1]).addNext(activityList[3]).addNext(activityList[5]);
 	activityList[1].addNext(activityList[2]);
 	activityList[3].addNext(activityList[4]).addNext(activityList[6]);
-	activityList[6].addNext(activityList[5]);
+	activityList[6].addNext(activityList[4]).addNext(activityList[7]);
+	
+	activityList[6].addNext(activityList[8]);
 	
 	Activity start = activityList[0];
 	resources = new int[] {4, 8};
 	maxDuration = 5;
-	maxFinish = 21;
+	maxFinish = 28;
 	findEStart(activityList[0], 0);
 	
 	start = parsePSPlibData("data/j301_7.sm");

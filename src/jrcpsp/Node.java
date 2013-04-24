@@ -53,6 +53,7 @@ public class Node {
 	
 	beginings = new HashSet<>();
 	beginings.add(addedActivityStart);
+	beginings.add(maxTime);//konec rozvrhu, mozna zbytecny
 	for (int i = activities.nextSetBit(0); i >= 0; i = activities.nextSetBit(i+1)) {
 	    Activity a = Main.activityList[i-1];
 	    if(getActivityEnd(a) > addedActivityStart) {
