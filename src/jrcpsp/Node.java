@@ -1,8 +1,8 @@
 package jrcpsp;
 
 import java.util.BitSet;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *
@@ -14,16 +14,12 @@ public class Node {
     private final BitSet activities;
     private int[] activityBeginings;
     
-    //private final Activity addedActivity;
     private int maxTime;
     private int minPossibleFinish;
     
     private final Set<Integer> beginings;
     
     public Node(Node prev, Activity addedActivity, int addedActivityStart) {
-	
-	//this.addedActivity = addedActivity;
-	
 	
 	if(prev != null) {
 	    activities = (BitSet) prev.getActivities().clone();
@@ -34,15 +30,13 @@ public class Node {
 	    
 	    int cmpf = addedActivityStart + addedActivity.getDuration() + addedActivity.getMinTimeAfter();
 	    minPossibleFinish = prev.getMinPossibleFinish() > cmpf ? prev.getMinPossibleFinish() : cmpf;
-	
 	}
-	else {
+	else { //root node
 	    activities = new BitSet();
 	    activityBeginings = new int[Main.activityList.length];
 	    for(int i = 0; i < activityBeginings.length; i++) {
 		activityBeginings[i] = Main.maxFinish * 100;
 	    }
-	    
 	    maxTime = addedActivity.getDuration();
 	    minPossibleFinish = addedActivity.getDuration() + addedActivity.getMinTimeAfter();
 	}
@@ -51,7 +45,7 @@ public class Node {
 	activities.set(addedActivity.getName());
 	this.setActivityStart(addedActivity, addedActivityStart);
 	
-	beginings = new HashSet<>();
+	beginings = new TreeSet<>();
 	beginings.add(addedActivityStart);
 	beginings.add(maxTime);//konec rozvrhu, mozna zbytecny
 	for (int i = activities.nextSetBit(0); i >= 0; i = activities.nextSetBit(i+1)) {
@@ -60,10 +54,8 @@ public class Node {
 		beginings.add(getActivityEnd(a));
 	    }
 	}
-	
+		
     }
-    
-    
     
     public final void setActivityStart(Activity a, int start) {
 	activityBeginings[a.getName()-1] = start;
@@ -77,7 +69,6 @@ public class Node {
 	return activityBeginings[a.getName()-1];
     }
     
-    
     public void addActivity(Activity a) {
 	activities.set(a.getName());
     }
@@ -85,12 +76,7 @@ public class Node {
     public BitSet getActivities() {
 	return activities;
     }
-    
-//    public Activity getLastActivity() {
-//	return addedActivity;
-//    }
-
-    
+        
     public int getMaxTime() {
 	return maxTime;
     }
@@ -106,7 +92,5 @@ public class Node {
     public int getMinPossibleFinish() {
 	return minPossibleFinish;
     }
-   
-    
 
 }

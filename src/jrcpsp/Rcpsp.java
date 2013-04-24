@@ -19,13 +19,14 @@ public class Rcpsp {
     private int currentBest;
     private int[] currentSchedule;
     
-    
     private int[][] time;
     
-    public static int x = 0;
-    public static int y = 0;
+    public static long x = 0;
+    public static long y = 0;
     
     private BitSet end;
+    
+    private final static boolean VERBOSE = false;
 
     public Rcpsp(Activity firstActivity, int activityCount, int[] resourcesLimit, int maxDuration) {
 	
@@ -43,87 +44,45 @@ public class Rcpsp {
 	    end.set(i);
 	}
     }
-    
-    List<Integer> list = new ArrayList<>();
-    
+        
     public void search() {
-	//list.add(0);
 	search(rootNode);
-	//System.out.println(x);
-    }
-    
-//    public void search2(Node node) {
-//	x++;
-//	for(int i : list) {
-//	    System.out.print(i + ",");
-//	}
-//	System.out.println("");
-//	
-//	BitSet schedule = (BitSet) node.getActivities();
-//	
-//	for (int i = schedule.nextSetBit(0); i >= 0; i = schedule.nextSetBit(i+1)) {
-//	    Activity a = Main.activityList[i-1];
-//	    
-//	    for(Activity next : a.getNext()) {
-//		if(!schedule.get(next.getName())) {
-//		    list.add(next.getName());
-//		    search2(new Node(node, next, 0));
-//		    list.remove((Integer)next.getName());
-//		}
-//	    }
-//	    //search(new Node(node, next, currentTime));
-//	}
-//    }
-    
-    
-    final boolean verbose = false;
-    
+    }  
     
     private void search(Node node) {
-	
-	//if(node.getMinPossibleFinish() > currentBest) {
-	if(node.getMaxTime() >= currentBest) {
-	    y++;
-	    return;
-	}
-	
+		
 	BitSet schedule = (BitSet) node.getActivities();
 	int currentTime = node.getMaxTime();
 	
-	x++;
-	if(x % 1000000 == 0) {
+	if(++x % 1000000 == 0) {
 	    System.out.println(x + "/" + y + ": " + currentBest);
 	}
-	
-	if(verbose) {
+	if(VERBOSE) {
 	    System.out.print("[" + x + "] ");
 	    for (int i = schedule.nextSetBit(0); i >= 0; i = schedule.nextSetBit(i+1)) {
 		System.out.print(Main.activityList[i-1].getName() + ",");
 	    }
 	    System.out.println(" -> " + currentTime);
 	}
+	
 	//rozvrh je kompletni
 	if(schedule.cardinality() == activityCount) {
 	    if(currentTime < currentBest) {
 		System.out.println("["  + x + "] Better solution: " + currentBest + " -> " + currentTime);
 		currentBest = currentTime;
 		currentSchedule = node.getActivityBeginings().clone();
-		//System.out.println(this);
 	    }
 	    return;
 	}
 	
 	//pridame vsechny mozne varianty - deti uzlu, ktere jsou v castecnem rozvrhu
-	//for(Activity a : schedule.values()) {
 	for (int i = schedule.nextSetBit(0); i >= 0; i = schedule.nextSetBit(i+1)) {
 	    Activity a = Main.activityList[i-1];
 	    
 	    for(Activity next : a.getNext()) {
 		if(!schedule.get(next.getName())) {
 
-		    if( currentTime + next.getDuration() < next.setEarliestStart()
-			//|| currentTime + next.getDuration() + next.getMinTimeAfter() >= currentBest   
-			    ) { 
+		    if( currentTime + next.getDuration() < next.setEarliestStart()) { 
 			continue; //asap
 		    }
 		    else {
@@ -131,18 +90,17 @@ public class Rcpsp {
 		    }
 		    
 		    //muzu ji pridat ted hned, pokud je jeji predek driv
-		    for(int startTime : node.getBeginings()) {//neni tam i to dole?
+		    for(int startTime : node.getBeginings()) {
 			if(startTime < next.setEarliestStart() || startTime > next.getLatestStart()) {
 			    continue;
+			}
+			if(startTime + next.getDuration()+ next.getMinTimeAfter() >= currentBest) { //starTime is ordered, any other will be only longer!
+			    break;
 			}
 			else {
 			    y++;
 			}
-			
-			if(x == 44) {
-			    x = 44;
-			}
-			
+						
 			boolean add = true;
 			//kontrola predku
 			for(Activity test : next.getPrev()) { 
@@ -155,11 +113,11 @@ public class Rcpsp {
 			    //kontrola zda neprekracuje limit
 			    if(startTime + next.getDuration() + next.getMinTimeAfter() < currentBest && // + next.getMinTimeAfter() 
 				    checkPartialSchedule(node, next, startTime)) {
-				if(verbose) System.out.print("o" + next.getName() + " ");
-
-				search(new Node(node, next, startTime));
-				//return;
-				//break; //?
+				if(VERBOSE) System.out.print("o" + next.getName() + " ");
+				Node n = new Node(node, next, startTime);
+				if(n.getMinPossibleFinish() < currentBest) { //jestli neni minimalni mozny rozvrh delsi nez nejelpsi nalezeny
+				    search(n);
+				}
 			    }
 			    else {
 				y++;
@@ -169,28 +127,6 @@ public class Rcpsp {
 			    y++;
 			}
 		    }
-
-		    //a nebo po ni, pokud je to syn libovolneho v rozvrhu
-//		    boolean add = true;
-//		    for(Activity test : next.getPrev()) { 
-//			if(node.getActivityEnd(test) > currentTime) {
-//			    add = false;
-//			    break;
-//			}
-//		    }
-//		    if(add) {
-//			if(currentTime + next.getDuration() < currentBest && //+ next.getMinTimeAfter() 
-//				checkPartialSchedule(node, next, currentTime)) {
-//			    if(verbose) System.out.print("x" + next.getName() + " ");
-//			    search(new Node(node, next, currentTime));
-//			}
-//			else {
-//			    y++;
-//			}
-//		    }
-//		    else {
-//			y++;
-//		    }
 		}
 	    }
 	}
@@ -226,7 +162,6 @@ public class Rcpsp {
 	}
 	return true;
     }
-
     
     @Override
     public String toString() {
@@ -239,6 +174,4 @@ public class Rcpsp {
 	return res;
     }
     
-    
-
 }

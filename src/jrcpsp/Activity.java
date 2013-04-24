@@ -18,24 +18,10 @@ public class Activity implements Cloneable {
     private final int duration;
     private final int[] resources;
     
-    //private int startTime;
-    //private int endTime;
-    
-    //private int eFinish;
     private int eStart;
-    //private int lFinish;
     private int lStart;
     private int minTimeAfter;
 
-    public int getMinTimeAfter() {
-	return minTimeAfter;
-    }
-
-    public void setMinTimeAfter(int minTimeAfter) {
-	this.minTimeAfter = minTimeAfter;
-    }
-    
-    
     public Activity(int name, int duration, int[] resources) {
 	next = new ArrayList<>();
 	prev = new ArrayList<>();
@@ -43,9 +29,15 @@ public class Activity implements Cloneable {
 	this.name = name;
 	this.duration = duration;
 	this.resources = resources;
-	
-	//startTime = Integer.MAX_VALUE - duration;
+	    
+    }
     
+    public int getMinTimeAfter() {
+	return minTimeAfter;
+    }
+
+    public void setMinTimeAfter(int minTimeAfter) {
+	this.minTimeAfter = minTimeAfter;
     }
 
     public List<Activity> getNext() {
@@ -64,8 +56,6 @@ public class Activity implements Cloneable {
 
     public void addPrev(Activity prev) {
 	this.prev.add(prev);
-//	prev.addNext(this);
-//	return this;
     }
 
     public int getDuration() {
@@ -76,31 +66,10 @@ public class Activity implements Cloneable {
 	return resources;
     }
 
-//    public int getStartTime() {
-//	return startTime;
-//    }
-    
-//    public int getEndTime() {
-//	return endTime;
-//    }
-
-//    public void setStartTime(int startTime) {
-//	endTime = startTime + duration;
-//	this.startTime = startTime;
-//    }
-
     public int getName() {
 	return name;
-    }
-//
-//    public int geteFinish() {
-//	return eFinish;
-//    }
-//
-//    public void seteFinish(int eFinish) {
-//	this.eFinish = eFinish;
-//    }
-
+    } 
+    
     public int setEarliestStart() {
 	return eStart;
     }
@@ -109,14 +78,6 @@ public class Activity implements Cloneable {
 	this.eStart = eStart;
     }
 
-//    public int getlFinish() {
-//	return lFinish;
-//    }
-//
-//    public void setlFinish(int lFinish) {
-//	this.lFinish = lFinish;
-//    }
-
     public int getLatestStart() {
 	return lStart;
     }
@@ -124,15 +85,5 @@ public class Activity implements Cloneable {
     public void setLatestStart(int lStart) {
 	this.lStart = lStart;
     }
-    
-//    @Override
-//    protected Activity clone()  {
-//	try {
-//	    return (Activity) super.clone();
-//	}
-//	catch (CloneNotSupportedException e) {
-//	    return null;
-//	}
-//    }
 
 }
