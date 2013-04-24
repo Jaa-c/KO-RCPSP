@@ -1,8 +1,6 @@
 package jrcpsp;
 
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
 
 /**
  *
@@ -23,9 +21,7 @@ public class Rcpsp {
     
     public static long x = 0;
     public static long y = 0;
-    
-    private BitSet end;
-    
+        
     private final static boolean VERBOSE = false;
 
     public Rcpsp(Activity firstActivity, int activityCount, int[] resourcesLimit, int maxDuration) {
@@ -38,11 +34,6 @@ public class Rcpsp {
 	this.currentBest = Integer.MAX_VALUE;
 	
 	this.time = new int[maxDuration + 1][resourcesLimit.length];
-	
-	end = new BitSet();
-	for(int i = 1; i <= Main.activityList.length; i++) {
-	    end.set(i);
-	}
     }
         
     public void search() {
@@ -71,6 +62,7 @@ public class Rcpsp {
 		System.out.println("["  + x + "] Better solution: " + currentBest + " -> " + currentTime);
 		currentBest = currentTime;
 		currentSchedule = node.getActivityBeginings().clone();
+		//System.out.println(this);
 	    }
 	    return;
 	}
@@ -83,10 +75,8 @@ public class Rcpsp {
 		if(!schedule.get(next.getName())) {
 
 		    if( currentTime + next.getDuration() < next.setEarliestStart()) { 
-			continue; //asap
-		    }
-		    else {
 			y++;
+			continue; //asap
 		    }
 		    
 		    //muzu ji pridat ted hned, pokud je jeji predek driv
@@ -132,42 +122,72 @@ public class Rcpsp {
 	}
     }
     
-    public boolean checkPartialSchedule(final Node node, final Activity last, final int lastActivityStartTime) {
-
-	//vymazani starych hodnot 
-	for(int i =0; i < time.length; i++) {
+    public boolean checkPartialSchedule(final Node node, Activity last, int lastActivityStartTime) {
+	
+	for(int i = 0; i < time.length; i++) {
 	    for(int j = 0; j < resourcesLimit.length; j++) {
-		time[i][j] = last.getResources()[j];
+		if(i <= last.getDuration())
+		    time[i][j] = last.getResources()[j];
+		else
+		    time[i][j] = 0;
 	    }
 	}
 	
-	final int resourcesSize = last.getResources().length;
+	int currEnd = last.getDuration() + lastActivityStartTime;
 	
 	for (int next = node.getActivities().nextSetBit(0); next >= 0; next = node.getActivities().nextSetBit(next+1)) {
 	    final Activity a = Main.activityList[next-1];
-	    
-	    if(node.getActivityEnd(a) > lastActivityStartTime) {
-		for(int i = node.getActivityStart(a); i < node.getActivityEnd(a); i++) {
-		    int index = i - lastActivityStartTime;
-		    if(index >= 0 && index <= last.getDuration()) {
-			for(int r = 0; r < resourcesSize; r++) {
-			    time[index][r] += a.getResources()[r];
-			    if(time[index][r] > resourcesLimit[r]) {
-				return false;
-			    }
+	    int start = node.getActivityStart(a);
+	    if(start > currEnd || node.getActivityEnd(a) < start) { //aktivita zacina az po konci nove pridane
+		continue;
+	    }
+	    for(int i = start; i < start + a.getDuration(); i++) {
+		int index = i - lastActivityStartTime;
+		if(index > 0 && index <= Main.maxDuration) {
+		    for(int r = 0; r < resourcesLimit.length; r++) {
+			time[index][r] += a.getResources()[r];
+			if(time[index][r] > resourcesLimit[r]) {
+			    return false;
 			}
 		    }
 		}
 	    }
 	}
+	
 	return true;
+
+//	//vymazani starych hodnot 
+//	for(int i = 0; i < time.length; i++) {
+//	    for(int j = 0; j < resourcesLimit.length; j++) {
+//		if(i <= last.getDuration())
+//		    time[i][j] = last.getResources()[j];
+//		else
+//		    time[i][j] = 0;
+//	    }
+//	}
+//	
+//	final int resourcesSize = last.getResources().length;
+//
+//	for(int i = 0; i < activityCount; i++) {
+//	    final int index = node.getActivityEndings()[i] - lastActivityStartTime;
+//	    if(index > 0 && index <= Main.activityList[i].getDuration()) {
+//		for(int r = 0; r < resourcesSize; r++) {
+//		    time[index][r] += Main.activityList[i].getResources()[r];
+//		    if(time[index][r] > resourcesLimit[r]) {
+//			return false;
+//		    }
+//		}
+//	    }
+//	}
     }
     
     @Override
     public String toString() {
 	String res = "> Optimal solution: " + currentBest + "\n";
 	for(int i = 0; i < Main.activityList.length; i++) {
-	    res += "> " + (i+1) + ": time=" + currentSchedule[i] + "->" + (currentSchedule[i] + Main.activityList[i].getDuration()) + "\n";
+	    res += "> " + (i+1) + ": time=" + currentSchedule[i] + "->" 
+		    + (currentSchedule[i] + Main.activityList[i].getDuration()) 
+		    + " (" + Main.activityList[i].getDuration() + ")\n";
 	}
 	float perc = (float)y/(float)x;
 	res += "recursive calls: " + x + " pruned " + perc +"x more";// + y;

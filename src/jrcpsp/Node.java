@@ -13,6 +13,7 @@ public class Node {
     
     private final BitSet activities;
     private int[] activityBeginings;
+    private int[] activityEndings;
     
     private int maxTime;
     private int minPossibleFinish;
@@ -24,6 +25,7 @@ public class Node {
 	if(prev != null) {
 	    activities = (BitSet) prev.getActivities().clone();
 	    activityBeginings = prev.getActivityBeginings().clone();
+	    activityEndings = prev.getActivityEndings().clone();
 	    
 	    int cmt = addedActivityStart + addedActivity.getDuration() ;
 	    maxTime = prev.getMaxTime() > cmt ? prev.getMaxTime() : cmt;
@@ -34,8 +36,10 @@ public class Node {
 	else { //root node
 	    activities = new BitSet();
 	    activityBeginings = new int[Main.activityList.length];
+	    activityEndings = new int[Main.activityList.length];
 	    for(int i = 0; i < activityBeginings.length; i++) {
 		activityBeginings[i] = Main.maxFinish * 100;
+		activityEndings[i] = -1;
 	    }
 	    maxTime = addedActivity.getDuration();
 	    minPossibleFinish = addedActivity.getDuration() + addedActivity.getMinTimeAfter();
@@ -59,6 +63,7 @@ public class Node {
     
     public final void setActivityStart(Activity a, int start) {
 	activityBeginings[a.getName()-1] = start;
+	activityEndings[a.getName()-1] = start + a.getDuration();
     }
     
     public final int getActivityEnd(Activity a) {
@@ -89,6 +94,14 @@ public class Node {
 	return activityBeginings;
     }
 
+    public int[] getActivityEndings() {
+	return activityEndings;
+    }
+
+    public void setActivityEndings(int[] activityEndings) {
+	this.activityEndings = activityEndings;
+    }
+    
     public int getMinPossibleFinish() {
 	return minPossibleFinish;
     }
