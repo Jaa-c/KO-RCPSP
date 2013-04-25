@@ -42,7 +42,7 @@ public class Main {
 	maxFinish = 28;
 	findEStart(activityList[0], 0);
 	
-	start = parsePSPlibData("data/j301_6.sm");
+	start = parsePSPlibData("data/j301_7.sm");//2_4
 	
 	Rcpsp sheduling = new Rcpsp(start, activityList.length, resources, maxDuration);
 	sheduling.search();

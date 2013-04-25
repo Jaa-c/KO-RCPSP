@@ -62,7 +62,6 @@ public class Rcpsp {
 		System.out.println("["  + x + "] Better solution: " + currentBest + " -> " + currentTime);
 		currentBest = currentTime;
 		currentSchedule = node.getActivityBeginings().clone();
-		//System.out.println(this);
 	    }
 	    return;
 	}
@@ -82,13 +81,12 @@ public class Rcpsp {
 		    //muzu ji pridat ted hned, pokud je jeji predek driv
 		    for(int startTime : node.getBeginings()) {
 			if(startTime < next.setEarliestStart() || startTime > next.getLatestStart()) {
+			    y++;
 			    continue;
 			}
 			if(startTime + next.getDuration()+ next.getMinTimeAfter() >= currentBest) { //starTime is ordered, any other will be only longer!
-			    break;
-			}
-			else {
 			    y++;
+			    break;
 			}
 						
 			boolean add = true;
@@ -107,6 +105,7 @@ public class Rcpsp {
 				Node n = new Node(node, next, startTime);
 				if(n.getMinPossibleFinish() < currentBest) { //jestli neni minimalni mozny rozvrh delsi nez nejelpsi nalezeny
 				    search(n);
+				    break; //?
 				}
 			    }
 			    else {
@@ -122,7 +121,9 @@ public class Rcpsp {
 	}
     }
     
+    long timeShedule = 0;
     public boolean checkPartialSchedule(final Node node, Activity last, int lastActivityStartTime) {
+	long ctime = System.currentTimeMillis();
 	
 	for(int i = 0; i < time.length; i++) {
 	    for(int j = 0; j < resourcesLimit.length; j++) {
@@ -141,7 +142,7 @@ public class Rcpsp {
 	    if(start > currEnd || node.getActivityEnd(a) < start) { //aktivita zacina az po konci nove pridane
 		continue;
 	    }
-	    for(int i = start; i < start + a.getDuration(); i++) {
+	    for(int i = start; i <= start + a.getDuration(); i++) { //problem v rovnitku!!
 		int index = i - lastActivityStartTime;
 		if(index > 0 && index <= Main.maxDuration) {
 		    for(int r = 0; r < resourcesLimit.length; r++) {
@@ -154,35 +155,15 @@ public class Rcpsp {
 	    }
 	}
 	
+	timeShedule += (System.currentTimeMillis() - ctime);
+	
 	return true;
-
-//	//vymazani starych hodnot 
-//	for(int i = 0; i < time.length; i++) {
-//	    for(int j = 0; j < resourcesLimit.length; j++) {
-//		if(i <= last.getDuration())
-//		    time[i][j] = last.getResources()[j];
-//		else
-//		    time[i][j] = 0;
-//	    }
-//	}
-//	
-//	final int resourcesSize = last.getResources().length;
-//
-//	for(int i = 0; i < activityCount; i++) {
-//	    final int index = node.getActivityEndings()[i] - lastActivityStartTime;
-//	    if(index > 0 && index <= Main.activityList[i].getDuration()) {
-//		for(int r = 0; r < resourcesSize; r++) {
-//		    time[index][r] += Main.activityList[i].getResources()[r];
-//		    if(time[index][r] > resourcesLimit[r]) {
-//			return false;
-//		    }
-//		}
-//	    }
-//	}
     }
     
     @Override
     public String toString() {
+	printResources(currentSchedule);
+	
 	String res = "> Optimal solution: " + currentBest + "\n";
 	for(int i = 0; i < Main.activityList.length; i++) {
 	    res += "> " + (i+1) + ": time=" + currentSchedule[i] + "->" 
@@ -190,8 +171,35 @@ public class Rcpsp {
 		    + " (" + Main.activityList[i].getDuration() + ")\n";
 	}
 	float perc = (float)y/(float)x;
-	res += "recursive calls: " + x + " pruned " + perc +"x more";// + y;
+	res += "recursive calls: " + x + " pruned " + perc +"x more\n";// + y;
+	res += "time checking shedule: " + timeShedule;
 	return res;
+    }
+
+    private void printResources(int[] currentSchedule) {
+	int[][] res = new int[currentBest+1][resourcesLimit.length];
+	for(int i = 0; i < activityCount; i++) {
+	    Activity a = Main.activityList[i];
+	    for(int s = currentSchedule[i]+1; s <= currentSchedule[i] + Main.activityList[i].getDuration(); s++ ) {
+		for(int r = 0; r < resourcesLimit.length; r++) {
+		    res[s][r] += a.getResources()[r];
+		}
+	    }
+	}
+	
+	System.out.print("\n    ");
+	for(int r = 0; r < resourcesLimit.length; r++) {
+	    System.out.print(resourcesLimit[r] + "  ");
+	}
+	System.out.println("\n");
+	for(int i = 0; i < res.length; i++) {
+	    System.out.print(i + " | ");
+	    for(int r = 0; r < resourcesLimit.length; r++) {
+		System.out.print(res[i][r] + "  ");
+	    }
+	    System.out.print("\n");
+	}
+    
     }
     
 }
